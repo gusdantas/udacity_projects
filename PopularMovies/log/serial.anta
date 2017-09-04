@@ -1,0 +1,22 @@
+
+
+---------------------------------------------------------------------------
+Mon Aug 28 17:52:16 2017|INFO : \\.\COM84 port detected
+
+Mon Aug 28 17:52:16 2017|INFO : Hand shake ---> Bytes written: 11 - AT$LGDMGO
+
+
+Mon Aug 28 17:52:17 2017|INFO : Response <--- Bytes read: 0 - 
+
+Mon Aug 28 17:52:17 2017|INFO : Request ---> Bytes written: 7
+FA 47 00 00 28 DD 7E 
+
+Mon Aug 28 17:52:17 2017|INFO : Response <--- Bytes read: 77
+FA 47 00 00 4C 47 4D 37 30 30 46 41 54 2D 30 30 
+2D 56 31 30 61 2D 53 53 56 2D 54 4C 46 2D 4A 55 
+4C 2D 32 33 2D 32 30 31 37 2B 31 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 22 CA 7E 
+
+Mon Aug 28 17:52:17 2017|INFO : String result:LGM700FAT-00-V10a-SSV-TLF-JUL-23-2017+1
+
