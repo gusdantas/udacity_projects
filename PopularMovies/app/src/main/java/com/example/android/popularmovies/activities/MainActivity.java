@@ -25,13 +25,14 @@ public class MainActivity extends AppCompatActivity {
     private MoviesAdapter mMoviesAdapter;
     private RequestQueue mQueue;
     private JSONArray mResults = new JSONArray();
-    public static final String BASE_URL_POSTER = "http://image.tmdb.org/t/p/";
-    public static final String THUMB_POSTER_SIZE = "w185/";
-    public static final String POSTER_SIZE = "w780/";
-    private static final String BASE_URL_TMDB = "https://api.themoviedb.org/3/movie/";
-    private static final String POPULAR = "popular?api_key=";
-    private static final String TOP_RATED = "top_rated?api_key=";
-    private static final String API_KEY = BuildConfig.API_KEY;
+    public static final String BASE_URL_POSTER = "http://image.tmdb.org/t/p";
+    public static final String THUMB_POSTER_SIZE = "/w185";
+    public static final String POSTER_SIZE = "/w780";
+    public static final String BASE_URL_TMDB = "https://api.themoviedb.org/3/movie";
+    public static final String POPULAR = "/popular";
+    public static final String TOP_RATED = "/top_rated";
+    public static final String TRAILER = "/trailers";
+    public static final String REVIEWS = "/reviews";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         RecyclerView mMoviesRecyclerView = findViewById(R.id.rv_movies);
-
         GridLayoutManager staggeredGridLayoutManager =
                 new GridLayoutManager(this, 3);
         mMoviesRecyclerView.setLayoutManager(staggeredGridLayoutManager);
@@ -95,6 +95,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private static String setRequestUrl(String sortBy){
-        return BASE_URL_TMDB + sortBy + API_KEY;
+        return BASE_URL_TMDB + sortBy + BuildConfig.API_KEY;
     }
 }

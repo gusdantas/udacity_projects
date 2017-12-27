@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+<android.support.v4.widget.NestedScrollView
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
@@ -15,6 +16,8 @@
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
+        android:divider="@color/colorPrimary"
+        android:showDividers="middle"
         android:stretchColumns="1"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -26,16 +29,14 @@
 
             <TextView
                 android:id="@+id/tv_title_l"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Title:"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                style="@style/ContentLabel"
+                android:text="Title:" />
 
             <TextView
                 android:id="@+id/tv_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_span="2"
                 android:textSize="14sp" />
         </TableRow>
 
@@ -44,55 +45,15 @@
             android:layout_height="match_parent">
 
             <TextView
-                android:id="@+id/tv_vote_avg_l"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Vote average: "
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:id="@+id/tv_original_l"
+                style="@style/ContentLabel"
+                android:text="Original title:" />
 
             <TextView
-                android:id="@+id/tv_vote_avg"
+                android:id="@+id/tv_original"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp" />
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <TextView
-                android:id="@+id/tv_vote_count_l"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Vote count:"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tv_vote_count"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="14sp" />
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <TextView
-                android:id="@+id/tv_pop_l"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Popularity:"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tv_pop"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_span="2"
                 android:textSize="14sp" />
         </TableRow>
 
@@ -102,16 +63,14 @@
 
             <TextView
                 android:id="@+id/tv_release_date_l"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Release date: "
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                style="@style/ContentLabel"
+                android:text="Release date: " />
 
             <TextView
                 android:id="@+id/tv_release_date"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_span="2"
                 android:textSize="14sp" />
 
         </TableRow>
@@ -121,17 +80,57 @@
             android:layout_height="match_parent">
 
             <TextView
-                android:id="@+id/tv_original_l"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Original title:"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:id="@+id/tv_pop_l"
+                style="@style/ContentLabel"
+                android:text="Popularity:" />
 
             <TextView
-                android:id="@+id/tv_original"
+                android:id="@+id/tv_pop"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_span="2"
+                android:textSize="14sp" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/tv_vote_avg_l"
+                style="@style/ContentLabel"
+                android:text="Vote average: " />
+
+            <TextView
+                android:id="@+id/tv_vote_avg"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_reviews_link"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:onClick='onCheckReviews'
+                android:text="Check reviews!"
+                android:textAlignment="viewEnd" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/tv_vote_count_l"
+                style="@style/ContentLabel"
+                android:text="Vote count:" />
+
+            <TextView
+                android:id="@+id/tv_vote_count"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_span="2"
                 android:textSize="14sp" />
         </TableRow>
 
@@ -141,20 +140,39 @@
 
             <TextView
                 android:id="@+id/tv_overview_l"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Overview:"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                style="@style/ContentLabel"
+                android:text="Overview:" />
 
             <TextView
                 android:id="@+id/tv_overview"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_span="2"
                 android:fitsSystemWindows="true"
                 android:minLines="2"
                 android:scrollHorizontally="false"
                 android:textSize="14sp" />
+
         </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/tv_trailer_l"
+                style="@style/ContentLabel"
+                android:text="Trailer:" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_trailers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_span="2" />
+
+        </TableRow>
+
     </TableLayout>
+
 </android.support.v4.widget.NestedScrollView>
+</layout>
