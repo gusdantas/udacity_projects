@@ -1,5 +1,9 @@
 package com.example.android.popularmovies.activities;
 
+import android.database.Cursor;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -16,12 +20,15 @@ import com.android.volley.toolbox.Volley;
 import com.example.android.popularmovies.BuildConfig;
 import com.example.android.popularmovies.adapters.MoviesAdapter;
 import com.example.android.popularmovies.R;
+import com.example.android.popularmovies.data.MovieContract;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
+    public static LoaderManager.LoaderCallbacks<Cursor> sCursorLoaderCallbacks;
+    public static Cursor sMovieCursor;
     private MoviesAdapter mMoviesAdapter;
     private RequestQueue mQueue;
     private JSONArray mResults = new JSONArray();
@@ -33,6 +40,13 @@ public class MainActivity extends AppCompatActivity {
     public static final String TOP_RATED = "/top_rated";
     public static final String TRAILER = "/trailers";
     public static final String REVIEWS = "/reviews";
+    public static final int MOVIE_LOADER_ID = 16;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, sCursorLoaderCallbacks);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +63,69 @@ public class MainActivity extends AppCompatActivity {
 
         mQueue = Volley.newRequestQueue(this);
         mQueue.add(createJsonObjectRequest(setRequestUrl(POPULAR)));
+
+        sCursorLoaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {
+            @Override
+            public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+                return new AsyncTaskLoader<Cursor>(getApplicationContext()) {
+
+                    // Initialize a Cursor, this will hold all the task data
+                    Cursor mMovieData = null;
+
+                    // onStartLoading() is called when a loader first starts loading data
+                    @Override
+                    protected void onStartLoading() {
+                        if (mMovieData != null) {
+                            // Delivers any previously loaded data immediately
+                            deliverResult(mMovieData);
+                        } else {
+                            // Force a new load
+                            forceLoad();
+                        }
+                    }
+
+                    // loadInBackground() performs asynchronous loading of data
+                    @Override
+                    public Cursor loadInBackground() {
+                        // Will implement to load data
+
+                        // COMPLETED (5) Query and load all task data in the background; sort by priority
+                        // [Hint] use a try/catch block to catch any errors in loading data
+
+                        try {
+                            return getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                                    null,
+                                    null,
+                                    null,
+                                    MovieContract.MovieEntry.COLUMN_TMDB_ID);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return null;
+                        }
+                    }
+
+                    // deliverResult sends the result of the load, a Cursor, to the registered listener
+                    public void deliverResult(Cursor data) {
+                        mMovieData = data;
+                        super.deliverResult(data);
+                    }
+                };
+            }
+
+            @Override
+            public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+                sMovieCursor = data;
+
+            }
+
+            @Override
+            public void onLoaderReset(Loader<Cursor> loader) {
+
+            }
+        };
+
+        getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, sCursorLoaderCallbacks);
     }
 
     @Override
@@ -97,4 +174,63 @@ public class MainActivity extends AppCompatActivity {
     private static String setRequestUrl(String sortBy){
         return BASE_URL_TMDB + sortBy + BuildConfig.API_KEY;
     }
+
+    /*@Override
+    public Loader<Cursor> onCreateLoader(int id, final Bundle args) {
+
+        return new AsyncTaskLoader<Cursor>(this) {
+
+            // Initialize a Cursor, this will hold all the task data
+            Cursor mMovieData = null;
+
+            // onStartLoading() is called when a loader first starts loading data
+            @Override
+            protected void onStartLoading() {
+                if (mMovieData != null) {
+                    // Delivers any previously loaded data immediately
+                    deliverResult(mMovieData);
+                } else {
+                    // Force a new load
+                    forceLoad();
+                }
+            }
+
+            // loadInBackground() performs asynchronous loading of data
+            @Override
+            public Cursor loadInBackground() {
+                // Will implement to load data
+
+                // COMPLETED (5) Query and load all task data in the background; sort by priority
+                // [Hint] use a try/catch block to catch any errors in loading data
+
+                try {
+                    return getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                            null,
+                            null,
+                            null,
+                            MovieContract.MovieEntry.COLUMN_TMDB_ID);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            // deliverResult sends the result of the load, a Cursor, to the registered listener
+            public void deliverResult(Cursor data) {
+                mMovieData = data;
+                super.deliverResult(data);
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        sMovieCursor = data;
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }*/
 }

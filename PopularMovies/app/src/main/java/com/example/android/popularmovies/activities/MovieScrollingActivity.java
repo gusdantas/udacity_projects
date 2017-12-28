@@ -1,7 +1,9 @@
 package com.example.android.popularmovies.activities;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -13,7 +15,6 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -24,9 +25,9 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.android.popularmovies.BuildConfig;
 import com.example.android.popularmovies.R;
-import com.example.android.popularmovies.adapters.MoviesAdapter;
 import com.example.android.popularmovies.adapters.ReviewsAdapter;
 import com.example.android.popularmovies.adapters.TrailersAdapter;
+import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.databinding.ActivityMovieScrollingBinding;
 import com.squareup.picasso.Picasso;
 
@@ -38,9 +39,12 @@ import java.util.Locale;
 
 import static com.example.android.popularmovies.activities.MainActivity.BASE_URL_POSTER;
 import static com.example.android.popularmovies.activities.MainActivity.BASE_URL_TMDB;
+import static com.example.android.popularmovies.activities.MainActivity.sMovieCursor;
+import static com.example.android.popularmovies.activities.MainActivity.MOVIE_LOADER_ID;
 import static com.example.android.popularmovies.activities.MainActivity.POSTER_SIZE;
 import static com.example.android.popularmovies.activities.MainActivity.REVIEWS;
 import static com.example.android.popularmovies.activities.MainActivity.TRAILER;
+import static com.example.android.popularmovies.activities.MainActivity.sCursorLoaderCallbacks;
 
 public class MovieScrollingActivity extends AppCompatActivity {
     private static String mMovieID;
@@ -112,22 +116,31 @@ public class MovieScrollingActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        mMovieBinding.fab.setOnClickListener(new View.OnClickListener() {
+        mMovieBinding.fabFavorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                View posterView = getLayoutInflater()
-                        .inflate(R.layout.dialog_movie_poster, null);
-                ImageView imageView = posterView.findViewById(R.id.iv_movie_poster);
-                String posterUrl = null;
-                try {
-                    posterUrl = BASE_URL_POSTER + POSTER_SIZE +
-                            mMovieJsonObject.getString("poster_path");
-                } catch (JSONException e) {
-                    e.printStackTrace();
+
+                if (sMovieCursor.getCount() < 1) {
+                    insertFavorite();
+                } else {
+
+                    int tmdbIndex = sMovieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TMDB_ID);
+                    sMovieCursor.moveToFirst();
+                    while (!sMovieCursor.isAfterLast()) {
+                        if (sMovieCursor.getString(tmdbIndex).equals(mMovieID)) {
+                            break;
+                        }
+                        sMovieCursor.moveToNext();
+                    }
+
+                    if (sMovieCursor.isAfterLast()){
+                        insertFavorite();
+                    } else if (sMovieCursor.getString(tmdbIndex).equals(mMovieID)) {
+                        removeFavorite();
+                    } else {
+                        insertFavorite();
+                    }
                 }
-                Picasso.with(posterView.getContext()).load(posterUrl).into(imageView);
-                mPosterAlertDialog.setView(posterView)
-                        .setCancelable(true).create().show();
             }
         });
 
@@ -135,7 +148,6 @@ public class MovieScrollingActivity extends AppCompatActivity {
     }
 
     public void onCheckReviews(View view) {
-        Toast.makeText(this, "teste", Toast.LENGTH_LONG).show();
         View reviewView = getLayoutInflater()
                 .inflate(R.layout.reviews, null);
 
@@ -147,6 +159,52 @@ public class MovieScrollingActivity extends AppCompatActivity {
         reviewsRecyclerView.setAdapter(mReviewsAdapter);
         mReviewsAlertDialog.setView(reviewView)
                 .setCancelable(true).create().show();
+    }
+
+    public void onCheckPoster(View view) {
+        View posterView = getLayoutInflater()
+                .inflate(R.layout.dialog_movie_poster, null);
+        ImageView imageView = posterView.findViewById(R.id.iv_movie_poster);
+        String posterUrl = null;
+        try {
+            posterUrl = BASE_URL_POSTER + POSTER_SIZE +
+                    mMovieJsonObject.getString("poster_path");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        Picasso.with(posterView.getContext()).load(posterUrl).into(imageView);
+        mPosterAlertDialog.setView(posterView)
+                .setCancelable(true).create().show();
+    }
+
+    private void insertFavorite(){
+        // inserindo na base
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MovieContract.MovieEntry.COLUMN_TMDB_ID, mMovieID);
+        contentValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_INFO,
+                String.valueOf(mMovieJsonObject));
+        contentValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_REVIEW,
+                String.valueOf(mMovieReviews));
+        contentValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_TRAILER,
+                String.valueOf(mMovieTrailers));
+        Uri uri = getContentResolver()
+                .insert(MovieContract.MovieEntry.CONTENT_URI, contentValues);
+
+        if(uri != null) {
+            Toast.makeText(getBaseContext(), uri.toString() + " inserted", Toast.LENGTH_LONG)
+                    .show();
+        }
+    }
+
+    private void removeFavorite() {
+        int dbIndex = sMovieCursor.getColumnIndex(MovieContract.MovieEntry._ID);
+        String stringId = Integer.toString(sMovieCursor.getInt(dbIndex));
+        Uri uri = MovieContract.MovieEntry.CONTENT_URI;
+        uri = uri.buildUpon().appendPath(stringId).build();
+        getContentResolver().delete(uri, null, null);
+        getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, sCursorLoaderCallbacks);
+        Toast.makeText(getBaseContext(), uri.toString() + " removed", Toast.LENGTH_LONG)
+                .show();
     }
 
     private JsonObjectRequest createJsonObjectRequestForTrailer (String urlRequest){
