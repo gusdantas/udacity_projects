@@ -2,4 +2,17 @@
     <string name="app_name">Popular Movies</string>
     <string name="title_activity_movie_scrolling">MovieScrollingActivity</string>
     <string name="content_authority">com.example.android.popularmovies</string>
+
+    <string name="pref_sort_label">Sort by:</string>
+    <string name="pref_sort_label_popular">Popular</string>
+    <string name="pref_sort_label_top">Top Rated</string>
+    <string name="pref_sort_label_favorite">Favorite</string>
+
+    <string name="pref_sort_key" translatable="false">sort</string>
+    <string name="pref_sort_popular_value" translatable="false">/popular</string>
+    <string name="pref_sort_top_value" translatable="false">/top_rated</string>
+    <string name="pref_sort_favorite_value" translatable="false">favorite</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

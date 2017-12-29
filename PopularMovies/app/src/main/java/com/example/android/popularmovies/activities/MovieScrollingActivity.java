@@ -3,6 +3,7 @@ package com.example.android.popularmovies.activities;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -10,11 +11,13 @@ import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -47,6 +50,7 @@ import static com.example.android.popularmovies.activities.MainActivity.TRAILER;
 import static com.example.android.popularmovies.activities.MainActivity.sCursorLoaderCallbacks;
 
 public class MovieScrollingActivity extends AppCompatActivity {
+    private boolean mIsFavorite, mStayFavorite;
     private static String mMovieID;
     ReviewsAdapter mReviewsAdapter;
     TrailersAdapter mTrailersAdapter;
@@ -104,9 +108,8 @@ public class MovieScrollingActivity extends AppCompatActivity {
             Picasso.with(this).load(backdropUrl).into(mMovieBinding.ivMovieDetails);
             mMovieBinding.toolbarLayout.setTitle(mMovieJsonObject.getString("title"));
 
-            GridLayoutManager staggeredGridLayoutManager =
-                    new GridLayoutManager(this, 1);
-            mMovieBinding.contentMovie.rvTrailers.setLayoutManager(staggeredGridLayoutManager);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+            mMovieBinding.contentMovie.rvTrailers.setLayoutManager(linearLayoutManager);
             mMovieBinding.contentMovie.rvTrailers.setHasFixedSize(true);
             mTrailersAdapter = new TrailersAdapter(this);
             mMovieBinding.contentMovie.rvTrailers.setAdapter(mTrailersAdapter);
@@ -116,33 +119,15 @@ public class MovieScrollingActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        mMovieBinding.fabFavorite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                if (sMovieCursor.getCount() < 1) {
-                    insertFavorite();
-                } else {
-
-                    int tmdbIndex = sMovieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TMDB_ID);
-                    sMovieCursor.moveToFirst();
-                    while (!sMovieCursor.isAfterLast()) {
-                        if (sMovieCursor.getString(tmdbIndex).equals(mMovieID)) {
-                            break;
-                        }
-                        sMovieCursor.moveToNext();
-                    }
-
-                    if (sMovieCursor.isAfterLast()){
-                        insertFavorite();
-                    } else if (sMovieCursor.getString(tmdbIndex).equals(mMovieID)) {
-                        removeFavorite();
-                    } else {
-                        insertFavorite();
-                    }
-                }
-            }
-        });
+        if (isFavorite()) {
+            mMovieBinding.fabFavorite.setImageResource(android.R.drawable.btn_star_big_on);
+            mIsFavorite = true;
+            mStayFavorite = true;
+        } else {
+            mMovieBinding.fabFavorite.setImageResource(android.R.drawable.btn_star_big_off);
+            mIsFavorite = false;
+            mStayFavorite = false;
+        }
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
@@ -151,10 +136,9 @@ public class MovieScrollingActivity extends AppCompatActivity {
         View reviewView = getLayoutInflater()
                 .inflate(R.layout.reviews, null);
 
-        GridLayoutManager staggeredGridLayoutManager =
-                new GridLayoutManager(this, 1);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         RecyclerView reviewsRecyclerView = reviewView.findViewById(R.id.rv_reviews);
-        reviewsRecyclerView.setLayoutManager(staggeredGridLayoutManager);
+        reviewsRecyclerView.setLayoutManager(linearLayoutManager);
         reviewsRecyclerView.setHasFixedSize(true);
         reviewsRecyclerView.setAdapter(mReviewsAdapter);
         mReviewsAlertDialog.setView(reviewView)
@@ -177,8 +161,52 @@ public class MovieScrollingActivity extends AppCompatActivity {
                 .setCancelable(true).create().show();
     }
 
+    private boolean isFavorite() {
+
+        if (sMovieCursor.getCount() < 1) {
+            return false;
+        } else {
+            int tmdbIndex = sMovieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TMDB_ID);
+            sMovieCursor.moveToFirst();
+            while (!sMovieCursor.isAfterLast()) {
+                if (sMovieCursor.getString(tmdbIndex).equals(mMovieID)) {
+                    break;
+                }
+                sMovieCursor.moveToNext();
+            }
+
+            if (sMovieCursor.isAfterLast()){
+                return false;
+            } else if (sMovieCursor.getString(tmdbIndex).equals(mMovieID)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mIsFavorite && !mStayFavorite) {
+            removeFavorite();
+        } else if (!mIsFavorite && mStayFavorite) {
+            insertFavorite();
+        }
+    }
+
+    public void onCheckFavorite(View view) {
+
+        if (mStayFavorite){
+            mMovieBinding.fabFavorite.setImageResource(android.R.drawable.btn_star_big_off);
+            mStayFavorite = false;
+        } else {
+            mMovieBinding.fabFavorite.setImageResource(android.R.drawable.btn_star_big_on);
+            mStayFavorite = true;
+        }
+    }
+
     private void insertFavorite(){
-        // inserindo na base
         ContentValues contentValues = new ContentValues();
         contentValues.put(MovieContract.MovieEntry.COLUMN_TMDB_ID, mMovieID);
         contentValues.put(MovieContract.MovieEntry.COLUMN_MOVIE_INFO,
@@ -197,6 +225,11 @@ public class MovieScrollingActivity extends AppCompatActivity {
     }
 
     private void removeFavorite() {
+        int tmdbIndex = sMovieCursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TMDB_ID);
+        sMovieCursor.moveToFirst();
+        while (!sMovieCursor.getString(tmdbIndex).equals(mMovieID)) {
+            sMovieCursor.moveToNext();
+        }
         int dbIndex = sMovieCursor.getColumnIndex(MovieContract.MovieEntry._ID);
         String stringId = Integer.toString(sMovieCursor.getInt(dbIndex));
         Uri uri = MovieContract.MovieEntry.CONTENT_URI;

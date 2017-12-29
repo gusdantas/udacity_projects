@@ -1,6 +1,11 @@
 package com.example.android.popularmovies.activities;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.preference.ListPreference;
+import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -21,17 +26,20 @@ import com.example.android.popularmovies.BuildConfig;
 import com.example.android.popularmovies.adapters.MoviesAdapter;
 import com.example.android.popularmovies.R;
 import com.example.android.popularmovies.data.MovieContract;
+import com.example.android.popularmovies.data.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+        implements SharedPreferences.OnSharedPreferenceChangeListener {
     public static LoaderManager.LoaderCallbacks<Cursor> sCursorLoaderCallbacks;
     public static Cursor sMovieCursor;
     private MoviesAdapter mMoviesAdapter;
     private RequestQueue mQueue;
     private JSONArray mResults = new JSONArray();
+    SharedPreferences mSharedPreferences;
     public static final String BASE_URL_POSTER = "http://image.tmdb.org/t/p";
     public static final String THUMB_POSTER_SIZE = "/w185";
     public static final String POSTER_SIZE = "/w780";
@@ -62,36 +70,26 @@ public class MainActivity extends AppCompatActivity {
         mMoviesRecyclerView.setAdapter(mMoviesAdapter);
 
         mQueue = Volley.newRequestQueue(this);
-        mQueue.add(createJsonObjectRequest(setRequestUrl(POPULAR)));
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         sCursorLoaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {
             @Override
             public Loader<Cursor> onCreateLoader(int id, Bundle args) {
                 return new AsyncTaskLoader<Cursor>(getApplicationContext()) {
 
-                    // Initialize a Cursor, this will hold all the task data
                     Cursor mMovieData = null;
 
-                    // onStartLoading() is called when a loader first starts loading data
                     @Override
                     protected void onStartLoading() {
                         if (mMovieData != null) {
-                            // Delivers any previously loaded data immediately
                             deliverResult(mMovieData);
                         } else {
-                            // Force a new load
                             forceLoad();
                         }
                     }
 
-                    // loadInBackground() performs asynchronous loading of data
                     @Override
                     public Cursor loadInBackground() {
-                        // Will implement to load data
-
-                        // COMPLETED (5) Query and load all task data in the background; sort by priority
-                        // [Hint] use a try/catch block to catch any errors in loading data
-
                         try {
                             return getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
                                     null,
@@ -105,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                    // deliverResult sends the result of the load, a Cursor, to the registered listener
                     public void deliverResult(Cursor data) {
                         mMovieData = data;
                         super.deliverResult(data);
@@ -116,7 +113,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
                 sMovieCursor = data;
-
+                String sortPref = mSharedPreferences.getString(getString(R.string.pref_sort_key),
+                        getString(R.string.pref_sort_popular_value));
+                if (sortPref.equals(getString(R.string.pref_sort_favorite_value))) {
+                    mMoviesAdapter.setMoviesList(Utils.favoriteDbToArray(sMovieCursor));
+                } else {
+                    mQueue.add(createJsonObjectRequest(setRequestUrl(sortPref)));
+                }
             }
 
             @Override
@@ -136,18 +139,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        String sortBy = "";
         switch (item.getItemId()){
-            case R.id.sort_popular:
-                sortBy = setRequestUrl(POPULAR);
-                break;
-            case R.id.sort_top_rated:
-                sortBy = setRequestUrl(TOP_RATED);
-                break;
+            case R.id.sort_pref:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
         }
-        mQueue.add(createJsonObjectRequest(sortBy));
-        item.setChecked(true);
-        return true;
+        return super.onOptionsItemSelected(item);
     }
 
     private JsonObjectRequest createJsonObjectRequest(String urlRequest){
@@ -175,62 +172,23 @@ public class MainActivity extends AppCompatActivity {
         return BASE_URL_TMDB + sortBy + BuildConfig.API_KEY;
     }
 
-    /*@Override
-    public Loader<Cursor> onCreateLoader(int id, final Bundle args) {
-
-        return new AsyncTaskLoader<Cursor>(this) {
-
-            // Initialize a Cursor, this will hold all the task data
-            Cursor mMovieData = null;
-
-            // onStartLoading() is called when a loader first starts loading data
-            @Override
-            protected void onStartLoading() {
-                if (mMovieData != null) {
-                    // Delivers any previously loaded data immediately
-                    deliverResult(mMovieData);
-                } else {
-                    // Force a new load
-                    forceLoad();
-                }
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(getString(R.string.pref_sort_key))) {
+            String sortPref = sharedPreferences.getString(getString(R.string.pref_sort_key),
+                    getString(R.string.pref_sort_popular_value));
+            if (sortPref.equals(getString(R.string.pref_sort_favorite_value))) {
+                mMoviesAdapter.setMoviesList(Utils.favoriteDbToArray(sMovieCursor));
+            } else {
+                mQueue.add(createJsonObjectRequest(setRequestUrl(sortPref)));
             }
-
-            // loadInBackground() performs asynchronous loading of data
-            @Override
-            public Cursor loadInBackground() {
-                // Will implement to load data
-
-                // COMPLETED (5) Query and load all task data in the background; sort by priority
-                // [Hint] use a try/catch block to catch any errors in loading data
-
-                try {
-                    return getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
-                            null,
-                            null,
-                            null,
-                            MovieContract.MovieEntry.COLUMN_TMDB_ID);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            // deliverResult sends the result of the load, a Cursor, to the registered listener
-            public void deliverResult(Cursor data) {
-                mMovieData = data;
-                super.deliverResult(data);
-            }
-        };
+        }
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        sMovieCursor = data;
+    protected void onDestroy() {
+        super.onDestroy();
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .unregisterOnSharedPreferenceChangeListener(this);
     }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
-    }*/
 }
