@@ -1,16 +1,14 @@
 package com.example.android.popularmovies.activities;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.preference.ListPreference;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
@@ -23,8 +21,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.android.popularmovies.BuildConfig;
-import com.example.android.popularmovies.adapters.MoviesAdapter;
 import com.example.android.popularmovies.R;
+import com.example.android.popularmovies.adapters.MoviesAdapter;
 import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.data.Utils;
 
@@ -33,102 +31,49 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity
-        implements SharedPreferences.OnSharedPreferenceChangeListener {
-    public static LoaderManager.LoaderCallbacks<Cursor> sCursorLoaderCallbacks;
+        implements LoaderManager.LoaderCallbacks<Cursor>,
+        SharedPreferences.OnSharedPreferenceChangeListener {
     public static Cursor sMovieCursor;
     private MoviesAdapter mMoviesAdapter;
     private RequestQueue mQueue;
     private JSONArray mResults = new JSONArray();
     SharedPreferences mSharedPreferences;
+    RecyclerView mMoviesRecyclerView;
     public static final String BASE_URL_POSTER = "http://image.tmdb.org/t/p";
     public static final String THUMB_POSTER_SIZE = "/w185";
     public static final String POSTER_SIZE = "/w780";
     public static final String BASE_URL_TMDB = "https://api.themoviedb.org/3/movie";
-    public static final String POPULAR = "/popular";
-    public static final String TOP_RATED = "/top_rated";
     public static final String TRAILER = "/trailers";
     public static final String REVIEWS = "/reviews";
     public static final int MOVIE_LOADER_ID = 16;
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, sCursorLoaderCallbacks);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        RecyclerView mMoviesRecyclerView = findViewById(R.id.rv_movies);
+        mMoviesRecyclerView = findViewById(R.id.rv_movies);
         GridLayoutManager staggeredGridLayoutManager =
                 new GridLayoutManager(this, 3);
         mMoviesRecyclerView.setLayoutManager(staggeredGridLayoutManager);
         mMoviesRecyclerView.setHasFixedSize(true);
         mMoviesAdapter = new MoviesAdapter(this);
-        mMoviesRecyclerView.setAdapter(mMoviesAdapter);
+
 
         mQueue = Volley.newRequestQueue(this);
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-        sCursorLoaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {
-            @Override
-            public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-                return new AsyncTaskLoader<Cursor>(getApplicationContext()) {
-
-                    Cursor mMovieData = null;
-
-                    @Override
-                    protected void onStartLoading() {
-                        if (mMovieData != null) {
-                            deliverResult(mMovieData);
-                        } else {
-                            forceLoad();
-                        }
-                    }
-
-                    @Override
-                    public Cursor loadInBackground() {
-                        try {
-                            return getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
-                                    null,
-                                    null,
-                                    null,
-                                    MovieContract.MovieEntry.COLUMN_TMDB_ID);
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            return null;
-                        }
-                    }
-
-                    public void deliverResult(Cursor data) {
-                        mMovieData = data;
-                        super.deliverResult(data);
-                    }
-                };
+        if (savedInstanceState == null || !savedInstanceState.containsKey("results")) {
+            getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+        } else {
+            try {
+                String jsonString = savedInstanceState.getString("results");
+                mResults = new JSONArray(jsonString);
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-
-            @Override
-            public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-                sMovieCursor = data;
-                String sortPref = mSharedPreferences.getString(getString(R.string.pref_sort_key),
-                        getString(R.string.pref_sort_popular_value));
-                if (sortPref.equals(getString(R.string.pref_sort_favorite_value))) {
-                    mMoviesAdapter.setMoviesList(Utils.favoriteDbToArray(sMovieCursor));
-                } else {
-                    mQueue.add(createJsonObjectRequest(setRequestUrl(sortPref)));
-                }
-            }
-
-            @Override
-            public void onLoaderReset(Loader<Cursor> loader) {
-
-            }
-        };
-
-        getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, sCursorLoaderCallbacks);
+            mMoviesAdapter.setMoviesList(mResults);
+        }
+        mMoviesRecyclerView.setAdapter(mMoviesAdapter);
     }
 
     @Override
@@ -190,5 +135,67 @@ public class MainActivity extends AppCompatActivity
         super.onDestroy();
         PreferenceManager.getDefaultSharedPreferences(this)
                 .unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<Cursor>(getApplicationContext()) {
+
+            Cursor mMovieData = null;
+
+            @Override
+            protected void onStartLoading() {
+                if (mMovieData != null) {
+                    deliverResult(mMovieData);
+                } else {
+                    forceLoad();
+                }
+            }
+
+            @Override
+            public Cursor loadInBackground() {
+                try {
+                    return getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                            null,
+                            null,
+                            null,
+                            MovieContract.MovieEntry.COLUMN_TMDB_ID);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            public void deliverResult(Cursor data) {
+                mMovieData = data;
+                super.deliverResult(data);
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        sMovieCursor = data;
+        String sortPref = mSharedPreferences.getString(getString(R.string.pref_sort_key),
+                getString(R.string.pref_sort_popular_value));
+        if (sortPref.equals(getString(R.string.pref_sort_favorite_value))) {
+            mMoviesAdapter.setMoviesList(Utils.favoriteDbToArray(sMovieCursor));
+        } else {
+            mQueue.add(createJsonObjectRequest(setRequestUrl(sortPref)));
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mResults != null){
+            outState.putString("results", mResults.toString());
+        }
     }
 }

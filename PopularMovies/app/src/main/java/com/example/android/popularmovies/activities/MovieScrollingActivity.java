@@ -3,21 +3,18 @@ package com.example.android.popularmovies.activities;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -42,12 +39,10 @@ import java.util.Locale;
 
 import static com.example.android.popularmovies.activities.MainActivity.BASE_URL_POSTER;
 import static com.example.android.popularmovies.activities.MainActivity.BASE_URL_TMDB;
-import static com.example.android.popularmovies.activities.MainActivity.sMovieCursor;
-import static com.example.android.popularmovies.activities.MainActivity.MOVIE_LOADER_ID;
 import static com.example.android.popularmovies.activities.MainActivity.POSTER_SIZE;
 import static com.example.android.popularmovies.activities.MainActivity.REVIEWS;
 import static com.example.android.popularmovies.activities.MainActivity.TRAILER;
-import static com.example.android.popularmovies.activities.MainActivity.sCursorLoaderCallbacks;
+import static com.example.android.popularmovies.activities.MainActivity.sMovieCursor;
 
 public class MovieScrollingActivity extends AppCompatActivity {
     private boolean mIsFavorite, mStayFavorite;
@@ -235,7 +230,7 @@ public class MovieScrollingActivity extends AppCompatActivity {
         Uri uri = MovieContract.MovieEntry.CONTENT_URI;
         uri = uri.buildUpon().appendPath(stringId).build();
         getContentResolver().delete(uri, null, null);
-        getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, sCursorLoaderCallbacks);
+
         Toast.makeText(getBaseContext(), uri.toString() + " removed", Toast.LENGTH_LONG)
                 .show();
     }
