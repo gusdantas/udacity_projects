@@ -5,8 +5,8 @@
       <module fileurl="file://$PROJECT_DIR$/FinalProject.iml" filepath="$PROJECT_DIR$/FinalProject.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/backend/backend.iml" filepath="$PROJECT_DIR$/backend/backend.iml" />
-      <module fileurl="file://$PROJECT_DIR$/javaJokes/javaJokes.iml" filepath="$PROJECT_DIR$/javaJokes/javaJokes.iml" />
       <module fileurl="file://$PROJECT_DIR$/jokeactivitylibrary/jokeactivitylibrary.iml" filepath="$PROJECT_DIR$/jokeactivitylibrary/jokeactivitylibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/libJoker/libJoker.iml" filepath="$PROJECT_DIR$/libJoker/libJoker.iml" />
     </modules>
   </component>
 </project>
