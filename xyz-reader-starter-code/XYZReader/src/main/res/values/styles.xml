@@ -18,11 +18,55 @@
 <resources>
 
     <style name="Theme.Bacon" parent="@style/Theme.AppCompat.Light.NoActionBar">
-
+        <item name="colorPrimary">@color/theme_primary</item>
+        <item name="colorPrimaryDark">@color/theme_primary_dark</item>
+        <item name="colorAccent">@color/theme_accent</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
 
     <style name="Theme.Bacon.Detail">
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="colorControlNormal">@color/title</item>
+    </style>
+
+    <style name="Theme.Bacon.Detail.ArticleTitle" parent="TextAppearance.AppCompat.Large">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:lineSpacingMultiplier">0.9</item>
+        <item name="android:textColor">@color/title</item>
+        <item name="android:textSize">@dimen/detail_title_text_size</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@color/detail_bg</item>
+        <item name="android:paddingStart">@dimen/detail_body_standard_margin</item>
+        <item name="android:paddingEnd">@dimen/detail_body_standard_margin</item>
+        <item name="android:text">@string/app_name</item>
+    </style>
+
+    <style name="Theme.Bacon.Detail.ArticleSubtitle" parent="TextAppearance.AppCompat.Small">
+        <item name="android:textColor">@color/subtitle</item>
+        <item name="android:background">@color/detail_bg</item>
+        <item name="android:padding">@dimen/detail_body_standard_margin</item>
+        <item name="android:text">@string/welcome_xyz_reader</item>
+    </style>
+
+    <style name="Theme.Bacon.Detail.ArticleBody" parent="TextAppearance.AppCompat.Medium">
+        <item name="android:textColor">@color/theme_primary_dark</item>
+        <item name="android:textColorLink">@color/theme_accent</item>
+        <item name="android:layout_margin">@dimen/detail_body_standard_margin</item>
+        <item name="android:lineSpacingMultiplier">@fraction/detail_body_line_spacing_multiplier</item>
+        <item name="android:textSize">@dimen/detail_body_text_size</item>
+        <item name="android:text">@string/large_text</item>
+    </style>
+
+    <style name="Theme.Bacon.List.ArticleTitle" parent="TextAppearance.AppCompat.Subhead">
+        <item name="android:lines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <style name="Theme.Bacon.List.ArticleSubtitle" parent="TextAppearance.AppCompat.Body1">
+        <item name="android:textColor">@color/ltgray</item>
+        <item name="android:lines">2</item>
+        <item name="android:ellipsize">end</item>
     </style>
 
 </resources>

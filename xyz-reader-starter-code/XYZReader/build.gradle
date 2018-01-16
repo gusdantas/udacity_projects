@@ -20,6 +20,10 @@ android {
         minSdkVersion 19
         targetSdkVersion 25
     }
+
+    dataBinding {
+        enabled = true
+    }
 }
 
 dependencies {
