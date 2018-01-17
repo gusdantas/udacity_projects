@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.graphics.Palette;
@@ -36,7 +37,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
-import com.example.xyzreader.databinding.FragmentArticleDetailBinding;
 
 /**
  * A fragment representing a single Article detail screen. This fragment is
@@ -90,12 +90,6 @@ public class ArticleDetailFragment extends Fragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //getActivityCast().getWindow().getDecorView().setSystemUiVisibility(View
-                //.SYSTEM_UI_FLAG_FULLSCREEN);
-//        getActivityCast().getWindow().getDecorView().setSystemUiVisibility(
-//                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-//                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
-//                        View.SYSTEM_UI_FLAG_FULLSCREEN);
 
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             mItemId = getArguments().getLong(ARG_ITEM_ID);
@@ -176,6 +170,7 @@ public class ArticleDetailFragment extends Fragment implements
         if (mRootView == null || mArticleTextView == null) {
             return;
         }
+
 
         mToolbar = (Toolbar) mRootView.findViewById(R.id.toolbar);
         mToolbar.setTitle("");
