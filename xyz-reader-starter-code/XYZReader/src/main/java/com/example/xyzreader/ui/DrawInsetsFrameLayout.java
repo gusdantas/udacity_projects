@@ -31,12 +31,9 @@ import com.example.xyzreader.R;
 
 public class DrawInsetsFrameLayout extends FrameLayout {
     private Drawable mInsetBackground;
-    private Drawable mTopInsetBackground;
-    private Drawable mBottomInsetBackground;
-    private Drawable mSideInsetBackground;
 
     private Rect mInsets;
-    private Rect mTempRect = new Rect();
+    private final Rect mTempRect = new Rect();
     private OnInsetsCallback mOnInsetsCallback;
 
     public DrawInsetsFrameLayout(Context context) {
@@ -64,19 +61,6 @@ public class DrawInsetsFrameLayout extends FrameLayout {
         a.recycle();
     }
 
-    public void setInsetBackground(Drawable insetBackground) {
-        if (mInsetBackground != null) {
-            mInsetBackground.setCallback(null);
-        }
-
-        if (insetBackground != null) {
-            insetBackground.setCallback(this);
-        }
-
-        mInsetBackground = insetBackground;
-        postInvalidateOnAnimation();
-    }
-
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -96,10 +80,6 @@ public class DrawInsetsFrameLayout extends FrameLayout {
         }
     }
 
-    public void setOnInsetsCallback(OnInsetsCallback onInsetsCallback) {
-        mOnInsetsCallback = onInsetsCallback;
-    }
-
     @Override
     public WindowInsets onApplyWindowInsets(WindowInsets insets) {
         insets = super.onApplyWindowInsets(insets);
@@ -110,9 +90,6 @@ public class DrawInsetsFrameLayout extends FrameLayout {
                 insets.getSystemWindowInsetBottom());
         setWillNotDraw(false);
         postInvalidateOnAnimation();
-        if (mOnInsetsCallback != null) {
-            mOnInsetsCallback.onInsetsChanged(mInsets);
-        }
         return insets;
     }
 
@@ -153,7 +130,6 @@ public class DrawInsetsFrameLayout extends FrameLayout {
         }
     }
 
-    public static interface OnInsetsCallback {
-        public void onInsetsChanged(Rect insets);
+    public interface OnInsetsCallback {
     }
 }

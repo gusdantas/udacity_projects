@@ -7,7 +7,6 @@
 
     <!-- card -->
     <dimen name="card_elevation">2dp</dimen>
-    <dimen name="card_margin">4dp</dimen>
     <dimen name="card_std_margin">8dp</dimen>
     <dimen name="card_std_padding">8dp</dimen>
 
@@ -19,9 +18,7 @@
     <dimen name="fab_elevation">6dp</dimen>
     <dimen name="fab_press_translation_z">12dp</dimen>
     <dimen name="fab_margin">24dp</dimen>
-    <dimen name="text_margin">16dp</dimen>
-    <dimen name="toolbar_height">40dp</dimen>
-
+    <dimen name="fab_dimension">56dp</dimen>
 
 
 </resources>

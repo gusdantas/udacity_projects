@@ -24,7 +24,6 @@
 
     <color name="title">#fff</color>
     <color name="subtitle">#8fff</color>
-    <color name="toolbar_default_color">#333</color>
 
     <color name="ltgray">#E0E0E0</color><!-- Grey 300 -->
     <color name="detail_bg">#212121</color><!-- Grey 900 -->
