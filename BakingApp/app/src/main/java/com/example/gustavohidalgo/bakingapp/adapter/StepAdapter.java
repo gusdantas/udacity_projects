@@ -9,9 +9,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
+import com.example.gustavohidalgo.bakingapp.interfaces.OnFragAdapterListener;
+import com.example.gustavohidalgo.bakingapp.interfaces.OnFragmentInteractionListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by gustavo.hidalgo on 18/01/29.
@@ -19,27 +22,29 @@ import org.json.JSONException;
 
 public class StepAdapter extends RecyclerView.Adapter<StepAdapter.StepViewHolder> {
     private final Context mContext;
-    private JSONArray mStepList;
+    private static JSONArray mStepList;
+    private static OnFragAdapterListener mOnFragAdapterListener;
 
     public StepAdapter(Context context){ this.mContext = context; }
 
     @Override
-    public StepAdapter.StepViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public StepViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Context context = parent.getContext();
+        mOnFragAdapterListener = (OnFragAdapterListener) context;
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         View view = layoutInflater.inflate(R.layout.step_item, parent, false);
-        return new StepAdapter.StepViewHolder(context, view);
+        return new StepViewHolder(context, view);
     }
 
     @Override
-    public void onBindViewHolder(StepAdapter.StepViewHolder holder, int position) {
-        String StepTitle = "";
+    public void onBindViewHolder(StepViewHolder holder, int position) {
+        String stepTitle = "";
         try {
-            StepTitle = mStepList.getJSONObject(position).getString("name");
+            stepTitle = mStepList.getJSONObject(position).getString("shortDescription");
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        holder.mStepTitle.setText(StepTitle);
+        holder.mStepTitle.setText(stepTitle);
     }
 
     @Override
@@ -51,15 +56,14 @@ public class StepAdapter extends RecyclerView.Adapter<StepAdapter.StepViewHolder
         }
     }
 
-    public void setStepList(JSONArray StepList) {
-        this.mStepList = StepList;
+    public void setStepList(JSONArray stepList) {
+        mStepList = stepList;
         notifyDataSetChanged();
     }
 
-    class StepViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    static class StepViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final Context mContext;
         final TextView mStepTitle;
-
 
         public StepViewHolder(Context context, View itemView) {
             super(itemView);
@@ -70,13 +74,11 @@ public class StepAdapter extends RecyclerView.Adapter<StepAdapter.StepViewHolder
 
         @Override
         public void onClick(View view) {
-//            Intent intent = new Intent(mContext, StepActivity.class);
-//            try {
-//                intent.putExtra("Step", mStepList.getJSONObject(getAdapterPosition()).toString());
-//            } catch (JSONException e) {
-//                e.printStackTrace();
-//            }
-//            mContext.startActivity(intent);
+            try {
+                mOnFragAdapterListener.onStepChosen(mStepList.getJSONObject(getAdapterPosition()));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ package com.example.gustavohidalgo.bakingapp.view;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,6 +14,9 @@ import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
 import com.example.gustavohidalgo.bakingapp.adapter.StepAdapter;
+import com.example.gustavohidalgo.bakingapp.interfaces.OnFragAdapterListener;
+import com.example.gustavohidalgo.bakingapp.interfaces.OnFragmentInteractionListener;
+import com.example.gustavohidalgo.bakingapp.utils.Measure;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,7 +30,7 @@ import org.json.JSONObject;
  * Use the {@link RecipeFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class RecipeFragment extends Fragment {
+public class RecipeFragment extends Fragment implements OnFragAdapterListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String RECIPE = "recipe";
@@ -75,7 +79,6 @@ public class RecipeFragment extends Fragment {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
@@ -83,14 +86,24 @@ public class RecipeFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_recipe, container, false);
-
         mIngredientsTV = view.findViewById(R.id.ingredients_tv);
-        for (J :
-             ) {
-            
-        }
-        
         mStepRV = view.findViewById(R.id.step_rv);
+
+        StringBuilder ingredients = new StringBuilder();
+        for (int i = 0; i < mIngredientList.length(); i++){
+            JSONObject ingredient = null;
+            try {
+                ingredient = new JSONObject(mIngredientList.get(i).toString());
+                ingredients.append(" - ")
+                        .append(Measure.getMeasure(ingredient.getString("measure"),
+                                ingredient.getDouble("quantity")))
+                        .append(ingredient.getString("ingredient")).append(";\n");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        mIngredientsTV.setText(ingredients);
+
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         mStepRV.setLayoutManager(linearLayoutManager);
         mStepRV.setHasFixedSize(true);
@@ -102,9 +115,9 @@ public class RecipeFragment extends Fragment {
     }
 
     // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
+    public void onStepChosen(JSONObject jsonObject) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
+            mListener.onFragmentInteraction(jsonObject);
         }
     }
 
@@ -123,20 +136,5 @@ public class RecipeFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
     }
 }
