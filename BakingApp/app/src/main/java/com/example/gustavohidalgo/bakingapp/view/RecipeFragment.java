@@ -1,9 +1,7 @@
 package com.example.gustavohidalgo.bakingapp.view;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,8 +12,8 @@ import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
 import com.example.gustavohidalgo.bakingapp.adapter.StepAdapter;
-import com.example.gustavohidalgo.bakingapp.interfaces.OnFragAdapterListener;
-import com.example.gustavohidalgo.bakingapp.interfaces.OnFragmentInteractionListener;
+import com.example.gustavohidalgo.bakingapp.interfaces.OnDetailToRecipeListener;
+import com.example.gustavohidalgo.bakingapp.interfaces.OnAdapterToDetailListener;
 import com.example.gustavohidalgo.bakingapp.utils.Measure;
 
 import org.json.JSONArray;
@@ -25,12 +23,12 @@ import org.json.JSONObject;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link RecipeFragment.OnFragmentInteractionListener} interface
+ * {@link OnDetailToRecipeListener} interface
  * to handle interaction events.
  * Use the {@link RecipeFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class RecipeFragment extends Fragment implements OnFragAdapterListener {
+public class RecipeFragment extends Fragment implements OnAdapterToDetailListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String RECIPE = "recipe";
@@ -43,7 +41,7 @@ public class RecipeFragment extends Fragment implements OnFragAdapterListener {
     private JSONObject mRecipeJson;
     private JSONArray mIngredientList, mStepList;
 
-    private OnFragmentInteractionListener mListener;
+    private OnDetailToRecipeListener mListener;
 
     public RecipeFragment() {
         // Required empty public constructor
@@ -109,26 +107,27 @@ public class RecipeFragment extends Fragment implements OnFragAdapterListener {
         mStepRV.setHasFixedSize(true);
         mStepAdapter = new StepAdapter(getContext());
         mStepAdapter.setStepList(mStepList);
+        mStepAdapter.setListener(this);
         mStepRV.setAdapter(mStepAdapter);
 
         return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
-    public void onStepChosen(JSONObject jsonObject) {
+    public void onStepChosen(int stepIndex) {
         if (mListener != null) {
-            mListener.onFragmentInteraction(jsonObject);
+            mListener.onFragmentInteraction(stepIndex);
         }
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof OnDetailToRecipeListener) {
+            mListener = (OnDetailToRecipeListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnDetailToRecipeListener");
         }
     }
 

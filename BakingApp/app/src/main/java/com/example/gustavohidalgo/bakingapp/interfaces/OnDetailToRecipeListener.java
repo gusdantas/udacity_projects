@@ -17,6 +17,7 @@ import org.json.JSONObject;
  * "http://developer.android.com/training/basics/fragments/communicating.html"
  * >Communicating with Other Fragments</a> for more information.
  */
-public interface OnFragmentInteractionListener {
-    void onFragmentInteraction(JSONObject jsonObject);
+public interface OnDetailToRecipeListener {
+    void onFragmentInteraction(int stepIndex);
+    int getLastStepIndex();
 }

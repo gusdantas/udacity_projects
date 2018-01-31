@@ -1,8 +1,7 @@
-<android.support.v4.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.example.gustavohidalgo.bakingapp.view.RecipeActivity"
+    android:id="@+id/recipe_activity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/recipe_activity">
-</android.support.v4.widget.NestedScrollView>
+    android:fillViewport="true"
+    tools:context="com.example.gustavohidalgo.bakingapp.view.RecipeActivity"></android.support.v4.widget.NestedScrollView>

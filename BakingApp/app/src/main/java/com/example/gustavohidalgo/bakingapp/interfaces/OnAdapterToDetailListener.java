@@ -6,6 +6,6 @@ import org.json.JSONObject;
  * Created by gustavo.hidalgo on 18/01/30.
  */
 
-public interface OnFragAdapterListener {
-    void onStepChosen(JSONObject jsonObject);
+public interface OnAdapterToDetailListener {
+    void onStepChosen(int stepIndex);
 }

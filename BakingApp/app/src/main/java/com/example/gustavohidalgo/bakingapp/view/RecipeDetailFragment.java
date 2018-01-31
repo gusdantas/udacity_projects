@@ -1,13 +1,11 @@
 package com.example.gustavohidalgo.bakingapp.view;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.media.session.MediaButtonReceiver;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
@@ -16,15 +14,24 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
-import com.example.gustavohidalgo.bakingapp.interfaces.OnFragmentInteractionListener;
+import com.example.gustavohidalgo.bakingapp.interfaces.OnAdapterToDetailListener;
+import com.example.gustavohidalgo.bakingapp.interfaces.OnDetailToRecipeListener;
+import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,27 +39,28 @@ import org.json.JSONObject;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link OnFragmentInteractionListener} interface
+ * {@link OnDetailToRecipeListener} interface
  * to handle interaction events.
  * Use the {@link RecipeDetailFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class RecipeDetailFragment extends Fragment implements View.OnClickListener, ExoPlayer.EventListener {
+public class RecipeDetailFragment extends Fragment implements View.OnClickListener,
+        Player.EventListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String STEP_DETAILS = "step_details";
-    private static final String TAG = RecipeDetailFragment.class.getSimpleName();
 
     // TODO: Rename and change types of parameters
     private JSONObject mStepDetail;
     private SimpleExoPlayer mExoPlayer;
     private SimpleExoPlayerView mPlayerView;
-    private static MediaSessionCompat mMediaSession;
-    private PlaybackStateCompat.Builder mStateBuilder;
+    private long mPlaybackPosition;
+    private int mStepIndex, mCurrentWindow;
+    private boolean mPlayWhenReady;
     private TextView mStepDetailsTV;
     private FloatingActionButton mNextFab, mPrevFab;
 
-    private OnFragmentInteractionListener mListener;
+    private OnDetailToRecipeListener mListener;
 
     public RecipeDetailFragment() {
         // Required empty public constructor
@@ -80,6 +88,7 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
         if (getArguments() != null) {
             try {
                 mStepDetail = new JSONObject(getArguments().getString(STEP_DETAILS));
+                mStepIndex = mStepDetail.getInt("id");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -93,7 +102,6 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
         View view = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
 
         mPlayerView = view.findViewById(R.id.step_player);
-        initializeMediaSession();
         mStepDetailsTV = view.findViewById(R.id.step_instruction_tv);
         StringBuilder instruction = new StringBuilder();
         try {
@@ -102,28 +110,27 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        mStepDetailsTV.setText(instruction);
+        mStepDetailsTV.setText(instruction.toString());
+
         mNextFab = view.findViewById(R.id.next_fab);
         mPrevFab = view.findViewById(R.id.prev_fab);
+        mNextFab.setOnClickListener(this);
+        mPrevFab.setOnClickListener(this);
+
+        if (mStepIndex == 0) mPrevFab.setVisibility(View.INVISIBLE);
+        if (mStepIndex == mListener.getLastStepIndex()) mNextFab.setVisibility(View.INVISIBLE);
 
         return view;
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            //mListener.onFragmentInteraction(uri);
-        }
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+        if (context instanceof OnDetailToRecipeListener) {
+            mListener = (OnDetailToRecipeListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnDetailToRecipeListener");
         }
     }
 
@@ -134,128 +141,138 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        if (Util.SDK_INT > 23) {
+            initializePlayer();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if ((Util.SDK_INT <= 23 || mExoPlayer == null)) {
+            initializePlayer();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (Util.SDK_INT <= 23) {
+            releasePlayer();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (Util.SDK_INT > 23) {
+            releasePlayer();
+        }
+    }
+
+    @Override
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.next_fab:
+                mListener.onFragmentInteraction(++mStepIndex);
                 break;
             case R.id.prev_fab:
+                mListener.onFragmentInteraction(--mStepIndex);
                 break;
         }
     }
 
-    private void initializeMediaSession() {
+    private void initializePlayer() {
+        mExoPlayer = ExoPlayerFactory.newSimpleInstance(
+                new DefaultRenderersFactory(getContext()),
+                new DefaultTrackSelector(), new DefaultLoadControl());
 
-        // Create a MediaSessionCompat.
-        mMediaSession = new MediaSessionCompat(getContext(), TAG);
+        mExoPlayer.addListener(this);
 
-        // Enable callbacks from MediaButtons and TransportControls.
-        mMediaSession.setFlags(
-                MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
-                        MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mPlayerView.setPlayer(mExoPlayer);
 
-        // Do not let MediaButtons restart the player when the app is not visible.
-        mMediaSession.setMediaButtonReceiver(null);
+        mExoPlayer.setPlayWhenReady(mPlayWhenReady);
+        mExoPlayer.seekTo(mCurrentWindow, mPlaybackPosition);
 
-        // Set an initial PlaybackState with ACTION_PLAY, so media buttons can start the player.
-        mStateBuilder = new PlaybackStateCompat.Builder()
-                .setActions(
-                        PlaybackStateCompat.ACTION_PLAY |
-                                PlaybackStateCompat.ACTION_PAUSE |
-                                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
-                                PlaybackStateCompat.ACTION_PLAY_PAUSE);
+        String videoUrl = getVideoUrl();
+        if (videoUrl.isEmpty()){
+            releasePlayer();
+        } else {
+            Uri uri = Uri.parse(videoUrl);
+            MediaSource mediaSource = buildMediaSource(uri);
+            mExoPlayer.prepare(mediaSource, true, false);
+        }
+    }
 
-        mMediaSession.setPlaybackState(mStateBuilder.build());
+    private void releasePlayer() {
+        if (mExoPlayer != null) {
+            mPlaybackPosition = mExoPlayer.getCurrentPosition();
+            mCurrentWindow = mExoPlayer.getCurrentWindowIndex();
+            mPlayWhenReady = mExoPlayer.getPlayWhenReady();
+            mExoPlayer.release();
+            mExoPlayer = null;
+        }
+    }
 
+    private MediaSource buildMediaSource(Uri uri) {
+        return new ExtractorMediaSource.Factory(
+                new DefaultHttpDataSourceFactory("exoplayer-codelab")).
+                createMediaSource(uri);
+    }
 
-        // MySessionCallback has methods that handle callbacks from a media controller.
-        mMediaSession.setCallback(new MySessionCallback());
-
-        // Start the Media Session since the activity is active.
-        mMediaSession.setActive(true);
-
+    private String getVideoUrl(){
+        String videoURL = "";
+        try {
+            videoURL = mStepDetail.getString("videoURL");
+            String thumbnailURL = mStepDetail.getString("thumbnailURL");
+            if (videoURL.equals("") && !thumbnailURL.equals("")) videoURL = thumbnailURL;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return videoURL;
     }
 
     @Override
     public void onTimelineChanged(Timeline timeline, Object manifest) {
-
     }
 
     @Override
     public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-
     }
 
     @Override
     public void onLoadingChanged(boolean isLoading) {
-
     }
 
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-
     }
 
     @Override
     public void onRepeatModeChanged(int repeatMode) {
-
     }
 
     @Override
     public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
-
     }
 
     @Override
     public void onPlayerError(ExoPlaybackException error) {
-
     }
 
     @Override
     public void onPositionDiscontinuity(int reason) {
-
     }
 
     @Override
     public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
-
     }
 
     @Override
     public void onSeekProcessed() {
-
     }
 
-    /**
-     * Media Session Callbacks, where all external clients control the player.
-     */
-    private class MySessionCallback extends MediaSessionCompat.Callback {
-        @Override
-        public void onPlay() {
-            mExoPlayer.setPlayWhenReady(true);
-        }
 
-        @Override
-        public void onPause() {
-            mExoPlayer.setPlayWhenReady(false);
-        }
-
-        @Override
-        public void onSkipToPrevious() {
-            mExoPlayer.seekTo(0);
-        }
-    }
-
-    /**
-     * Broadcast Receiver registered to receive the MEDIA_BUTTON intent coming from clients.
-     */
-    public static class MediaReceiver extends BroadcastReceiver {
-
-        public MediaReceiver() {
-        }
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            MediaButtonReceiver.handleIntent(mMediaSession, intent);
-        }
-    }
 }

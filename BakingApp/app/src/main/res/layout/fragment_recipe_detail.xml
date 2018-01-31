@@ -8,10 +8,11 @@
     <com.google.android.exoplayer2.ui.SimpleExoPlayerView
         android:id="@+id/step_player"
         android:layout_width="0dp"
-        android:layout_height="150dp"
+        android:layout_height="0dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        app:layout_constraintDimensionRatio="16:9"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -36,10 +37,13 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
         android:clickable="true"
+        android:focusable="true"
         android:src="@android:drawable/ic_media_next"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" android:focusable="true"/>
+        app:layout_constraintBottom_toBottomOf="@+id/prev_fab"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/prev_fab" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/prev_fab"
@@ -48,9 +52,10 @@
         android:layout_marginBottom="8dp"
         android:layout_marginStart="8dp"
         android:clickable="true"
+        android:focusable="true"
         android:src="@android:drawable/ic_media_previous"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" android:focusable="true"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
 
 </android.support.constraint.ConstraintLayout>
