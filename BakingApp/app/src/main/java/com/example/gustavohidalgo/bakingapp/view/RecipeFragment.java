@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
@@ -20,6 +21,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
@@ -28,15 +32,19 @@ import org.json.JSONObject;
  * Use the {@link RecipeFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class RecipeFragment extends Fragment implements OnAdapterToDetailListener {
+public class RecipeFragment extends Fragment implements OnAdapterToDetailListener,
+        View.OnClickListener {
+
+    @BindView(R.id.ingredients_label_tv) TextView mIngredientsLabelTV;
+    @BindView(R.id.expand_ing_iv) ImageView mExpandIngIV;
+    @BindView(R.id.ingredients_tv) TextView mIngredientsTV;
+    @BindView(R.id.step_rv) RecyclerView mStepRV;
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String RECIPE = "recipe";
 
     // TODO: Rename and change types of parameters
     private String mRecipe;
-    private TextView mIngredientsTV;
-    private RecyclerView mStepRV;
     private StepAdapter mStepAdapter;
     private JSONObject mRecipeJson;
     private JSONArray mIngredientList, mStepList;
@@ -84,8 +92,7 @@ public class RecipeFragment extends Fragment implements OnAdapterToDetailListene
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_recipe, container, false);
-        mIngredientsTV = view.findViewById(R.id.ingredients_tv);
-        mStepRV = view.findViewById(R.id.step_rv);
+        ButterKnife.bind(this, view);
 
         StringBuilder ingredients = new StringBuilder();
         for (int i = 0; i < mIngredientList.length(); i++){
@@ -109,6 +116,9 @@ public class RecipeFragment extends Fragment implements OnAdapterToDetailListene
         mStepAdapter.setStepList(mStepList);
         mStepAdapter.setListener(this);
         mStepRV.setAdapter(mStepAdapter);
+
+        mIngredientsLabelTV.setOnClickListener(this);
+        mExpandIngIV.setOnClickListener(this);
 
         return view;
     }
@@ -135,5 +145,18 @@ public class RecipeFragment extends Fragment implements OnAdapterToDetailListene
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onClick(View view) {
+        if (view.getId() == R.id.ingredients_label_tv || view.getId() == R.id.expand_ing_iv){
+            if (mIngredientsTV.getVisibility() == View.GONE){
+                mExpandIngIV.setImageResource(android.R.drawable.arrow_up_float);
+                mIngredientsTV.setVisibility(View.VISIBLE);
+            } else if (mIngredientsTV.getVisibility() == View.VISIBLE){
+                mExpandIngIV.setImageResource(android.R.drawable.arrow_down_float);
+                mIngredientsTV.setVisibility(View.GONE);
+            }
+        }
     }
 }

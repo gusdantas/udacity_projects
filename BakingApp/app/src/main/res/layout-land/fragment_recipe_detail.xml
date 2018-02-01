@@ -1,0 +1,62 @@
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.AppCompat.NoActionBar"
+    tools:context="com.example.gustavohidalgo.bakingapp.view.RecipeDetailFragment">
+
+    <com.google.android.exoplayer2.ui.SimpleExoPlayerView
+        android:id="@+id/step_player"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/step_instruction_tv"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="TextView"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/prev_fab"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/step_player" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/next_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:src="@android:drawable/ic_media_next"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/prev_fab"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/prev_fab" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/prev_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginStart="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:src="@android:drawable/ic_media_previous"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+</android.support.constraint.ConstraintLayout>

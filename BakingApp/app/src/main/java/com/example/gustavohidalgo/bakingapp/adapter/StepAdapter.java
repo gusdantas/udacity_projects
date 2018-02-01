@@ -13,6 +13,9 @@ import com.example.gustavohidalgo.bakingapp.interfaces.OnAdapterToDetailListener
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * Created by gustavo.hidalgo on 18/01/29.
  */
@@ -34,9 +37,10 @@ public class StepAdapter extends RecyclerView.Adapter<StepAdapter.StepViewHolder
 
     @Override
     public void onBindViewHolder(StepViewHolder holder, int position) {
-        String stepTitle = "";
+        StringBuilder stepTitle = new StringBuilder();
         try {
-            stepTitle = mStepList.getJSONObject(position).getString("shortDescription");
+            stepTitle.append(position).append(" - ")
+                    .append(mStepList.getJSONObject(position).getString("shortDescription"));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -63,18 +67,17 @@ public class StepAdapter extends RecyclerView.Adapter<StepAdapter.StepViewHolder
 
     static class StepViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         final Context mContext;
-        final TextView mStepTitle;
+        @BindView(R.id.step_title) TextView mStepTitle;
 
         public StepViewHolder(Context context, View itemView) {
             super(itemView);
+            ButterKnife.bind(this, itemView);
             mContext = context;
-            mStepTitle = itemView.findViewById(R.id.step_title);
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View view) {
-
             mOnAdapterToDetailListener.onStepChosen(getAdapterPosition());
         }
     }

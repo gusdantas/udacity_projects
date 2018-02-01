@@ -1,6 +1,7 @@
 package com.example.gustavohidalgo.bakingapp.view;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -11,6 +12,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
@@ -36,6 +38,9 @@ import com.google.android.exoplayer2.util.Util;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
@@ -51,14 +56,16 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     private static final String STEP_DETAILS = "step_details";
 
     // TODO: Rename and change types of parameters
+    @BindView(R.id.step_player) SimpleExoPlayerView mPlayerView;
+    @BindView(R.id.step_instruction_tv) TextView mStepDetailsTV;
+    @BindView(R.id.next_fab) FloatingActionButton mNextFab;
+    @BindView(R.id.prev_fab) FloatingActionButton mPrevFab;
+
     private JSONObject mStepDetail;
     private SimpleExoPlayer mExoPlayer;
-    private SimpleExoPlayerView mPlayerView;
     private long mPlaybackPosition;
     private int mStepIndex, mCurrentWindow;
     private boolean mPlayWhenReady;
-    private TextView mStepDetailsTV;
-    private FloatingActionButton mNextFab, mPrevFab;
 
     private OnDetailToRecipeListener mListener;
 
@@ -100,9 +107,8 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
+        ButterKnife.bind(this, view);
 
-        mPlayerView = view.findViewById(R.id.step_player);
-        mStepDetailsTV = view.findViewById(R.id.step_instruction_tv);
         StringBuilder instruction = new StringBuilder();
         try {
             instruction.append(mStepDetail.getString("shortDescription"))
@@ -112,8 +118,6 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
         }
         mStepDetailsTV.setText(instruction.toString());
 
-        mNextFab = view.findViewById(R.id.next_fab);
-        mPrevFab = view.findViewById(R.id.prev_fab);
         mNextFab.setOnClickListener(this);
         mPrevFab.setOnClickListener(this);
 
@@ -274,5 +278,22 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     public void onSeekProcessed() {
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
 
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            getActivity().getWindow().getDecorView()
+                    .setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            getActivity().getWindow().getDecorView()
+                    .setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
 }

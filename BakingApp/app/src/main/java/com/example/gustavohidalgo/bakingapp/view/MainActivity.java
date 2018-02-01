@@ -15,9 +15,12 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity {
 
-    RecyclerView mRecipesRV;
+    @BindView(R.id.recipes) RecyclerView mRecipesRV;
     RecipeAdapter mRecipeAdapter;
     JSONArray mRecipes = new JSONArray();
 
@@ -25,8 +28,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
-        mRecipesRV = findViewById(R.id.recipes);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 1);
         mRecipesRV.setLayoutManager(gridLayoutManager);
         mRecipesRV.setHasFixedSize(true);

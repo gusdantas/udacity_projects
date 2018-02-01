@@ -12,9 +12,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class RecipeActivity extends AppCompatActivity implements OnDetailToRecipeListener {
-    FragmentManager mFragmentManager;
-    JSONObject mRecipe;
-    private int mLastStepIndex;
+    private FragmentManager mFragmentManager;
+    private static JSONObject mRecipe;
+    private static int mLastStepIndex;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,11 +32,8 @@ public class RecipeActivity extends AppCompatActivity implements OnDetailToRecip
         }
 
         RecipeFragment recipeFragment = RecipeFragment.newInstance(recipe);
-
         mFragmentManager = getSupportFragmentManager();
-        mFragmentManager.beginTransaction().add(R.id.recipe_activity, recipeFragment)
-                .addToBackStack(null).commit();
-
+        mFragmentManager.beginTransaction().add(R.id.recipe_activity, recipeFragment).commit();
     }
 
     @Override
@@ -47,9 +44,11 @@ public class RecipeActivity extends AppCompatActivity implements OnDetailToRecip
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
         RecipeDetailFragment recipeDetailFragment = RecipeDetailFragment.newInstance(step);
+        mFragmentManager.popBackStack("frag2frag", FragmentManager.POP_BACK_STACK_INCLUSIVE);
         mFragmentManager.beginTransaction().replace(R.id.recipe_activity, recipeDetailFragment)
-                .addToBackStack(null).commit();
+                .addToBackStack("frag2frag").commit();
     }
 
     public int getLastStepIndex(){
