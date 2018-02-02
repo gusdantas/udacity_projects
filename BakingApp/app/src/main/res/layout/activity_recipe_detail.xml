@@ -1,0 +1,15 @@
+<android.support.v4.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:context="com.example.gustavohidalgo.bakingapp.view.RecipeActivity">
+
+    <FrameLayout
+        android:id="@+id/recipe_detail_activity"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </FrameLayout>
+</android.support.v4.widget.NestedScrollView>

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -56,6 +57,7 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     private static final String STEP_DETAILS = "step_details";
 
     // TODO: Rename and change types of parameters
+    @BindView(R.id.step_layout) ConstraintLayout mStepLayout;
     @BindView(R.id.step_player) SimpleExoPlayerView mPlayerView;
     @BindView(R.id.step_instruction_tv) TextView mStepDetailsTV;
     @BindView(R.id.next_fab) FloatingActionButton mNextFab;
@@ -65,7 +67,7 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     private SimpleExoPlayer mExoPlayer;
     private long mPlaybackPosition;
     private int mStepIndex, mCurrentWindow;
-    private boolean mPlayWhenReady;
+    private boolean mPlayWhenReady, mFitsSystemToWindow;
 
     private OnDetailToRecipeListener mListener;
 
@@ -92,6 +94,8 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mFitsSystemToWindow =
+                getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
         if (getArguments() != null) {
             try {
                 mStepDetail = new JSONObject(getArguments().getString(STEP_DETAILS));
@@ -99,6 +103,16 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+        }
+        // Checks the orientation of the screen
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            getActivity().getWindow().getDecorView()
+                    .setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE);
         }
     }
 
@@ -108,6 +122,12 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
         ButterKnife.bind(this, view);
+        setup();
+
+        return view;
+    }
+
+    public void setup(){
 
         StringBuilder instruction = new StringBuilder();
         try {
@@ -123,8 +143,7 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
 
         if (mStepIndex == 0) mPrevFab.setVisibility(View.INVISIBLE);
         if (mStepIndex == mListener.getLastStepIndex()) mNextFab.setVisibility(View.INVISIBLE);
-
-        return view;
+        initializePlayer();
     }
 
     @Override
@@ -142,22 +161,6 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (Util.SDK_INT > 23) {
-            initializePlayer();
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if ((Util.SDK_INT <= 23 || mExoPlayer == null)) {
-            initializePlayer();
-        }
     }
 
     @Override
@@ -282,14 +285,15 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
-        // Checks the orientation of the screen
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            getActivity().getWindow().getDecorView()
-                    .setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-            getActivity().getWindow().getDecorView()
-                    .setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-        }
+        LayoutInflater inflater = LayoutInflater.from(getActivity());
+        populateViewForOrientation(inflater, (ViewGroup) getView());
+    }
+
+    private void populateViewForOrientation(LayoutInflater inflater, ViewGroup viewGroup) {
+        viewGroup.removeAllViewsInLayout();
+        View subview = inflater.inflate(R.layout.fragment_recipe_detail, viewGroup);
+        ButterKnife.bind(this, subview);
+        setup();
     }
 
     @Override

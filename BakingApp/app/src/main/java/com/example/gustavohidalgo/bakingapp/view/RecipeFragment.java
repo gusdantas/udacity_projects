@@ -1,6 +1,7 @@
 package com.example.gustavohidalgo.bakingapp.view;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -49,7 +50,7 @@ public class RecipeFragment extends Fragment implements OnAdapterToDetailListene
     private JSONObject mRecipeJson;
     private JSONArray mIngredientList, mStepList;
 
-    private OnDetailToRecipeListener mListener;
+    //private OnDetailToRecipeListener mListener;
 
     public RecipeFragment() {
         // Required empty public constructor
@@ -125,26 +126,23 @@ public class RecipeFragment extends Fragment implements OnAdapterToDetailListene
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onStepChosen(int stepIndex) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(stepIndex);
-        }
-    }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnDetailToRecipeListener) {
-            mListener = (OnDetailToRecipeListener) context;
+        if(getResources().getBoolean(R.bool.isTablet)){
+            RecipeDetailFragment recipeDetailFragment = RecipeDetailFragment.newInstance
+                    (mStepList.getJSONObject(stepIndex));
+            getActivity().getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragment_recipe_detail, recipeDetailFragment).commit();
         } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnDetailToRecipeListener");
-        }
-    }
+            Intent intent = new Intent(getContext(), RecipeDetailActivity.class);
+            try {
+                intent.putExtra("step_list", mRecipeJson.getJSONArray("steps").toString());
+                intent.putExtra("step_index", stepIndex);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
+            getActivity().startActivity(intent);
+        }
     }
 
     @Override

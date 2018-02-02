@@ -1,6 +1,7 @@
 package com.example.gustavohidalgo.bakingapp.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,8 @@ import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
 import com.example.gustavohidalgo.bakingapp.interfaces.OnAdapterToDetailListener;
+import com.example.gustavohidalgo.bakingapp.view.RecipeActivity;
+import com.example.gustavohidalgo.bakingapp.view.RecipeDetailActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;

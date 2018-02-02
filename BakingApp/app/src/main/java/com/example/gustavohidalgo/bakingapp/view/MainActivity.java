@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 import com.example.gustavohidalgo.bakingapp.R;
@@ -30,8 +31,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 1);
-        mRecipesRV.setLayoutManager(gridLayoutManager);
+        boolean isTablet = getResources().getBoolean(R.bool.isTablet);
+        if (isTablet){
+            GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
+            mRecipesRV.setLayoutManager(gridLayoutManager);
+        } else {
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+            mRecipesRV.setLayoutManager(linearLayoutManager);
+        }
         mRecipesRV.setHasFixedSize(true);
 
         mRecipeAdapter = new RecipeAdapter(this);
