@@ -1,12 +1,5 @@
 package com.example.gustavohidalgo.bakingapp.interfaces;
 
-import android.net.Uri;
-
-import org.json.JSONObject;
-
-/**
- * Created by gustavo.hidalgo on 18/01/30.
- */
 /**
  * This interface must be implemented by activities that contain this
  * fragment to allow an interaction in this fragment to be communicated

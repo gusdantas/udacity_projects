@@ -1,7 +1,6 @@
-package com.example.gustavohidalgo.bakingapp.adapter;
+package com.example.gustavohidalgo.bakingapp.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,8 +9,6 @@ import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
 import com.example.gustavohidalgo.bakingapp.interfaces.OnAdapterToDetailListener;
-import com.example.gustavohidalgo.bakingapp.view.RecipeActivity;
-import com.example.gustavohidalgo.bakingapp.view.RecipeDetailActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,18 +21,18 @@ import butterknife.ButterKnife;
  */
 
 public class StepAdapter extends RecyclerView.Adapter<StepAdapter.StepViewHolder> {
-    private final Context mContext;
     private static JSONArray mStepList;
     private static OnAdapterToDetailListener mOnAdapterToDetailListener;
 
-    public StepAdapter(Context context){ this.mContext = context; }
+    public StepAdapter(){
+    }
 
     @Override
     public StepViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Context context = parent.getContext();
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         View view = layoutInflater.inflate(R.layout.step_item, parent, false);
-        return new StepViewHolder(context, view);
+        return new StepViewHolder(view);
     }
 
     @Override
@@ -69,13 +66,11 @@ public class StepAdapter extends RecyclerView.Adapter<StepAdapter.StepViewHolder
     }
 
     static class StepViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        final Context mContext;
         @BindView(R.id.step_title) TextView mStepTitle;
 
-        public StepViewHolder(Context context, View itemView) {
+        public StepViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
-            mContext = context;
             itemView.setOnClickListener(this);
         }
 

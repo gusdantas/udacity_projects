@@ -1,8 +1,7 @@
-package com.example.gustavohidalgo.bakingapp.view;
+package com.example.gustavohidalgo.bakingapp.activities;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,7 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
-import com.example.gustavohidalgo.bakingapp.adapter.StepAdapter;
+import com.example.gustavohidalgo.bakingapp.adapters.StepAdapter;
 import com.example.gustavohidalgo.bakingapp.interfaces.OnDetailToRecipeListener;
 import com.example.gustavohidalgo.bakingapp.interfaces.OnAdapterToDetailListener;
 import com.example.gustavohidalgo.bakingapp.utils.Measure;
@@ -36,21 +35,24 @@ import butterknife.ButterKnife;
 public class RecipeFragment extends Fragment implements OnAdapterToDetailListener,
         View.OnClickListener {
 
-    @BindView(R.id.ingredients_label_tv) TextView mIngredientsLabelTV;
-    @BindView(R.id.expand_ing_iv) ImageView mExpandIngIV;
-    @BindView(R.id.ingredients_tv) TextView mIngredientsTV;
-    @BindView(R.id.step_rv) RecyclerView mStepRV;
+    @BindView(R.id.ingredients_label_tv)
+    TextView mIngredientsLabelTV;
+    @BindView(R.id.expand_ing_iv)
+    ImageView mExpandIngIV;
+    @BindView(R.id.ingredients_tv)
+    TextView mIngredientsTV;
+    @BindView(R.id.step_rv)
+    RecyclerView mStepRV;
+
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String RECIPE = "recipe";
 
     // TODO: Rename and change types of parameters
     private String mRecipe;
-    private StepAdapter mStepAdapter;
-    private JSONObject mRecipeJson;
     private JSONArray mIngredientList, mStepList;
 
-    //private OnDetailToRecipeListener mListener;
+    private OnDetailToRecipeListener mOnDetailToRecipeListener;
 
     public RecipeFragment() {
         // Required empty public constructor
@@ -80,7 +82,7 @@ public class RecipeFragment extends Fragment implements OnAdapterToDetailListene
             mRecipe = getArguments().getString(RECIPE);
         }
         try {
-            mRecipeJson = new JSONObject(mRecipe);
+            JSONObject mRecipeJson = new JSONObject(mRecipe);
             mIngredientList = mRecipeJson.getJSONArray("ingredients");
             mStepList = mRecipeJson.getJSONArray("steps");
         } catch (JSONException e) {
@@ -94,10 +96,14 @@ public class RecipeFragment extends Fragment implements OnAdapterToDetailListene
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_recipe, container, false);
         ButterKnife.bind(this, view);
+        if(savedInstanceState != null){
+            int tt = savedInstanceState.getInt("show_ingredients");
+            mIngredientsTV.setVisibility(tt);
+        }
 
         StringBuilder ingredients = new StringBuilder();
         for (int i = 0; i < mIngredientList.length(); i++){
-            JSONObject ingredient = null;
+            JSONObject ingredient;
             try {
                 ingredient = new JSONObject(mIngredientList.get(i).toString());
                 ingredients.append(" - ")
@@ -113,7 +119,7 @@ public class RecipeFragment extends Fragment implements OnAdapterToDetailListene
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         mStepRV.setLayoutManager(linearLayoutManager);
         mStepRV.setHasFixedSize(true);
-        mStepAdapter = new StepAdapter(getContext());
+        StepAdapter mStepAdapter = new StepAdapter();
         mStepAdapter.setStepList(mStepList);
         mStepAdapter.setListener(this);
         mStepRV.setAdapter(mStepAdapter);
@@ -128,20 +134,17 @@ public class RecipeFragment extends Fragment implements OnAdapterToDetailListene
     public void onStepChosen(int stepIndex) {
 
         if(getResources().getBoolean(R.bool.isTablet)){
-            RecipeDetailFragment recipeDetailFragment = RecipeDetailFragment.newInstance
-                    (mStepList.getJSONObject(stepIndex));
-            getActivity().getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_recipe_detail, recipeDetailFragment).commit();
-        } else {
-            Intent intent = new Intent(getContext(), RecipeDetailActivity.class);
+            RecipeDetailFragment recipeDetailFragment = null;
             try {
-                intent.putExtra("step_list", mRecipeJson.getJSONArray("steps").toString());
-                intent.putExtra("step_index", stepIndex);
+                recipeDetailFragment = RecipeDetailFragment
+                        .newInstance(mStepList.getJSONObject(stepIndex));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
-            getActivity().startActivity(intent);
+            getActivity().getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_recipe_detail, recipeDetailFragment).commit();
+        } else {
+            mOnDetailToRecipeListener.onFragmentInteraction(stepIndex);
         }
     }
 
@@ -156,5 +159,15 @@ public class RecipeFragment extends Fragment implements OnAdapterToDetailListene
                 mIngredientsTV.setVisibility(View.GONE);
             }
         }
+    }
+
+    public void setListener(OnDetailToRecipeListener onDetailToRecipeListener){
+        mOnDetailToRecipeListener = onDetailToRecipeListener;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("ingredients_visibility", mIngredientsTV.getVisibility());
     }
 }

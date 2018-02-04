@@ -1,7 +1,5 @@
 package com.example.gustavohidalgo.bakingapp.utils;
 
-import java.security.Key;
-
 /**
  * Created by gustavo.hidalgo on 18/01/30.
  */
@@ -23,11 +21,11 @@ public enum Measure {
         this.mPlural = plural;
     }
 
-    public String getSingle() {
+    private String getSingle() {
         return mSingle;
     }
 
-    public String getPlural() {
+    private String getPlural() {
         return mPlural;
     }
 

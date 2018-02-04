@@ -1,23 +1,20 @@
-package com.example.gustavohidalgo.bakingapp.view;
+package com.example.gustavohidalgo.bakingapp.activities;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
-import com.example.gustavohidalgo.bakingapp.interfaces.OnAdapterToDetailListener;
 import com.example.gustavohidalgo.bakingapp.interfaces.OnDetailToRecipeListener;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -57,19 +54,24 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     private static final String STEP_DETAILS = "step_details";
 
     // TODO: Rename and change types of parameters
-    @BindView(R.id.step_layout) ConstraintLayout mStepLayout;
-    @BindView(R.id.step_player) SimpleExoPlayerView mPlayerView;
-    @BindView(R.id.step_instruction_tv) TextView mStepDetailsTV;
-    @BindView(R.id.next_fab) FloatingActionButton mNextFab;
-    @BindView(R.id.prev_fab) FloatingActionButton mPrevFab;
+    @BindView(R.id.step_layout)
+    ConstraintLayout mStepLayout;
+    @BindView(R.id.step_player)
+    SimpleExoPlayerView mPlayerView;
+    @BindView(R.id.step_instruction_tv)
+    TextView mStepDetailsTV;
+    @BindView(R.id.next_fab)
+    FloatingActionButton mNextFab;
+    @BindView(R.id.prev_fab)
+    FloatingActionButton mPrevFab;
 
     private JSONObject mStepDetail;
     private SimpleExoPlayer mExoPlayer;
     private long mPlaybackPosition;
     private int mStepIndex, mCurrentWindow;
-    private boolean mPlayWhenReady, mFitsSystemToWindow;
+    private boolean mPlayWhenReady;
 
-    private OnDetailToRecipeListener mListener;
+    private OnDetailToRecipeListener mOnDetailToRecipeListener;
 
     public RecipeDetailFragment() {
         // Required empty public constructor
@@ -94,8 +96,6 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mFitsSystemToWindow =
-                getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
         if (getArguments() != null) {
             try {
                 mStepDetail = new JSONObject(getArguments().getString(STEP_DETAILS));
@@ -127,7 +127,7 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
         return view;
     }
 
-    public void setup(){
+    private void setup(){
 
         StringBuilder instruction = new StringBuilder();
         try {
@@ -142,7 +142,7 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
         mPrevFab.setOnClickListener(this);
 
         if (mStepIndex == 0) mPrevFab.setVisibility(View.INVISIBLE);
-        if (mStepIndex == mListener.getLastStepIndex()) mNextFab.setVisibility(View.INVISIBLE);
+        if (mStepIndex == mOnDetailToRecipeListener.getLastStepIndex()) mNextFab.setVisibility(View.INVISIBLE);
         initializePlayer();
     }
 
@@ -150,7 +150,7 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnDetailToRecipeListener) {
-            mListener = (OnDetailToRecipeListener) context;
+            mOnDetailToRecipeListener = (OnDetailToRecipeListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnDetailToRecipeListener");
@@ -160,7 +160,7 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+        mOnDetailToRecipeListener = null;
     }
 
     @Override
@@ -183,10 +183,10 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.next_fab:
-                mListener.onFragmentInteraction(++mStepIndex);
+                mOnDetailToRecipeListener.onFragmentInteraction(++mStepIndex);
                 break;
             case R.id.prev_fab:
-                mListener.onFragmentInteraction(--mStepIndex);
+                mOnDetailToRecipeListener.onFragmentInteraction(--mStepIndex);
                 break;
         }
     }
@@ -205,6 +205,8 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
 
         String videoUrl = getVideoUrl();
         if (videoUrl.isEmpty()){
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.icon_no_video);
+            mPlayerView.setDefaultArtwork(bitmap);
             releasePlayer();
         } else {
             Uri uri = Uri.parse(videoUrl);
@@ -296,8 +298,7 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
         setup();
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    public void setListener(OnDetailToRecipeListener onDetailToRecipeListener){
+        this.mOnDetailToRecipeListener = onDetailToRecipeListener;
     }
 }

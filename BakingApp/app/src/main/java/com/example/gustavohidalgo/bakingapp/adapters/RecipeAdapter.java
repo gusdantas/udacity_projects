@@ -1,7 +1,6 @@
-package com.example.gustavohidalgo.bakingapp.adapter;
+package com.example.gustavohidalgo.bakingapp.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,7 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
-import com.example.gustavohidalgo.bakingapp.view.RecipeActivity;
+import com.example.gustavohidalgo.bakingapp.interfaces.OnAdapterToDetailListener;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -26,6 +25,7 @@ import butterknife.ButterKnife;
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder> {
     private final Context mContext;
     private static JSONArray mRecipeList;
+    private static OnAdapterToDetailListener mOnAdapterToDetailListener;
 
     public RecipeAdapter(Context context){ this.mContext = context; }
 
@@ -34,7 +34,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         Context context = parent.getContext();
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         View view = layoutInflater.inflate(R.layout.recipe_item, parent, false);
-        return new RecipeViewHolder(context, view);
+        return new RecipeViewHolder(view);
     }
 
     @Override
@@ -53,9 +53,11 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
             e.printStackTrace();
         }
         holder.mRecipeTitle.setText(recipeInfo.toString());
-        if (!image.isEmpty()) {
-            Picasso.with(mContext).load(image).placeholder(R.drawable.pastry_assortment)
-                    .error(R.drawable.pastry_assortment).into(holder.mRecipeThumb);
+        if (image.isEmpty()) {
+            Picasso.with(mContext).load(R.drawable.pastry_assortment).fit().into(holder.mRecipeThumb);
+        } else {
+            Picasso.with(mContext).load(image).placeholder(R.drawable.pastry_assortment).fit()
+                    .error(R.drawable.pastry_assortment).fit().into(holder.mRecipeThumb);
         }
     }
 
@@ -73,29 +75,24 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         notifyDataSetChanged();
     }
 
+    public void setListener(OnAdapterToDetailListener listener) {
+        mOnAdapterToDetailListener = listener;
+    }
+
     static class RecipeViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        final Context mContext;
         @BindView(R.id.recipe_iv) ImageView mRecipeThumb;
         @BindView(R.id.recipe_tv) TextView mRecipeTitle;
 
 
-        public RecipeViewHolder(Context context, View itemView) {
+        public RecipeViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
-            mContext = context;
             itemView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View view) {
-
-            Intent intent = new Intent(mContext, RecipeActivity.class);
-            try {
-                intent.putExtra("recipe", mRecipeList.getJSONObject(getAdapterPosition()).toString());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            mContext.startActivity(intent);
+            mOnAdapterToDetailListener.onStepChosen(getAdapterPosition());
         }
     }
 }
