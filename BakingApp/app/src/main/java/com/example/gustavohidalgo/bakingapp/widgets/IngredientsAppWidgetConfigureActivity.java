@@ -10,10 +10,15 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.gustavohidalgo.bakingapp.R;
 import com.example.gustavohidalgo.bakingapp.adapters.RecipeAdapter;
 import com.example.gustavohidalgo.bakingapp.interfaces.OnAdapterToDetailListener;
-import com.example.gustavohidalgo.bakingapp.utils.File;
 import com.example.gustavohidalgo.bakingapp.utils.Measure;
 
 import org.json.JSONArray;
@@ -22,6 +27,8 @@ import org.json.JSONObject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import static com.example.gustavohidalgo.bakingapp.activities.MainActivity.JSON_URL;
 
 /**
  * The configuration screen for the {@link IngredientsAppWidget IngredientsAppWidget} AppWidget.
@@ -35,6 +42,8 @@ public class IngredientsAppWidgetConfigureActivity extends Activity implements O
     @BindView(R.id.recipes)
     RecyclerView mRecipesRV;
     private JSONArray mRecipeList = new JSONArray();
+    RequestQueue mQueue;
+    private RecipeAdapter mRecipeAdapter;
 
     public IngredientsAppWidgetConfigureActivity() {
         super();
@@ -70,6 +79,7 @@ public class IngredientsAppWidgetConfigureActivity extends Activity implements O
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        mQueue = Volley.newRequestQueue(this);
         boolean isTablet = getResources().getBoolean(R.bool.isTablet);
         if (isTablet){
             GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
@@ -80,14 +90,8 @@ public class IngredientsAppWidgetConfigureActivity extends Activity implements O
         }
         mRecipesRV.setHasFixedSize(true);
 
-        RecipeAdapter mRecipeAdapter = new RecipeAdapter(this);
-        try {
-            mRecipeList = new JSONArray(File.loadJSONFromAsset(this, R.raw.baking));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        mRecipeAdapter.setRecipeList(mRecipeList);
+        mRecipeAdapter = new RecipeAdapter(this);
+        mQueue.add(createJsonObjectRequest(JSON_URL));
         mRecipeAdapter.setListener(this);
         mRecipesRV.setAdapter(mRecipeAdapter);
 
@@ -144,6 +148,22 @@ public class IngredientsAppWidgetConfigureActivity extends Activity implements O
         resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
         setResult(RESULT_OK, resultValue);
         finish();
+    }
 
+    private JsonArrayRequest createJsonObjectRequest(String urlRequest){
+        return new JsonArrayRequest
+                (Request.Method.GET, urlRequest, null, new Response.Listener<JSONArray>() {
+
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        mRecipeList = response;
+                        mRecipeAdapter.setRecipeList(mRecipeList);
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        error.printStackTrace();
+                    }
+                });
     }
 }

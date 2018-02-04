@@ -33,12 +33,12 @@ public class RecipeActivity extends AppCompatActivity implements OnDetailToRecip
             }
 
             mRecipeFragment = RecipeFragment.newInstance(recipe);
-            mRecipeFragment.setListener(this);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.recipe_activity, mRecipeFragment, "teste").commit();
+                    .add(R.id.recipe_activity, mRecipeFragment, "fragment").commit();
         } else {
-            mRecipeFragment = (RecipeFragment) getSupportFragmentManager().findFragmentByTag("teste");
+            mRecipeFragment = (RecipeFragment) getSupportFragmentManager().findFragmentByTag("fragment");
         }
+        mRecipeFragment.setListener(this);
     }
 
     @Override

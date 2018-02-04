@@ -12,16 +12,13 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.gustavohidalgo.bakingapp.R;
 import com.example.gustavohidalgo.bakingapp.adapters.RecipeAdapter;
 import com.example.gustavohidalgo.bakingapp.interfaces.OnAdapterToDetailListener;
-import com.example.gustavohidalgo.bakingapp.utils.File;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

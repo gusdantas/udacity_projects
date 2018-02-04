@@ -6,12 +6,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.gustavohidalgo.bakingapp.R;
@@ -24,20 +28,29 @@ import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.util.Util;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import static com.google.android.exoplayer2.C.VIDEO_SCALING_MODE_SCALE_TO_FIT;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -54,10 +67,10 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     private static final String STEP_DETAILS = "step_details";
 
     // TODO: Rename and change types of parameters
-    @BindView(R.id.step_layout)
-    ConstraintLayout mStepLayout;
     @BindView(R.id.step_player)
     SimpleExoPlayerView mPlayerView;
+    @BindView(R.id.step_thumbnail)
+    ImageView mStepThumb;
     @BindView(R.id.step_instruction_tv)
     TextView mStepDetailsTV;
     @BindView(R.id.next_fab)
@@ -69,7 +82,7 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     private SimpleExoPlayer mExoPlayer;
     private long mPlaybackPosition;
     private int mStepIndex, mCurrentWindow;
-    private boolean mPlayWhenReady;
+    private boolean mPlayWhenReady = true;
 
     private OnDetailToRecipeListener mOnDetailToRecipeListener;
 
@@ -96,6 +109,10 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mPlayWhenReady = savedInstanceState.getBoolean("video_should_play");
+            mPlaybackPosition = savedInstanceState.getLong("video_position");
+        }
         if (getArguments() != null) {
             try {
                 mStepDetail = new JSONObject(getArguments().getString(STEP_DETAILS));
@@ -143,7 +160,6 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
 
         if (mStepIndex == 0) mPrevFab.setVisibility(View.INVISIBLE);
         if (mStepIndex == mOnDetailToRecipeListener.getLastStepIndex()) mNextFab.setVisibility(View.INVISIBLE);
-        initializePlayer();
     }
 
     @Override
@@ -164,19 +180,9 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        if (Util.SDK_INT <= 23) {
-            releasePlayer();
-        }
-    }
-
-    @Override
     public void onStop() {
         super.onStop();
-        if (Util.SDK_INT > 23) {
-            releasePlayer();
-        }
+        releasePlayer();
     }
 
     @Override
@@ -192,26 +198,37 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
     }
 
     private void initializePlayer() {
+        mPlayerView.requestFocus();
         mExoPlayer = ExoPlayerFactory.newSimpleInstance(
                 new DefaultRenderersFactory(getContext()),
                 new DefaultTrackSelector(), new DefaultLoadControl());
 
         mExoPlayer.addListener(this);
-
         mPlayerView.setPlayer(mExoPlayer);
-
         mExoPlayer.setPlayWhenReady(mPlayWhenReady);
         mExoPlayer.seekTo(mCurrentWindow, mPlaybackPosition);
 
-        String videoUrl = getVideoUrl();
+        String thumbnailUrl = "";
+        String videoUrl = "";
+        try {
+            videoUrl = mStepDetail.getString("videoURL");
+            thumbnailUrl = mStepDetail.getString("thumbnailURL");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         if (videoUrl.isEmpty()){
-            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.icon_no_video);
-            mPlayerView.setDefaultArtwork(bitmap);
+            if(thumbnailUrl.isEmpty()){
+                Picasso.with(getContext()).load(R.drawable.icon_no_video).fit().into(mStepThumb);
+            } else {
+                Picasso.with(getContext()).load(thumbnailUrl).fit()
+                        .error(R.drawable.icon_no_video).fit().into(mStepThumb);
+            }
+            mStepThumb.setVisibility(View.VISIBLE);
             releasePlayer();
         } else {
             Uri uri = Uri.parse(videoUrl);
             MediaSource mediaSource = buildMediaSource(uri);
-            mExoPlayer.prepare(mediaSource, true, false);
+            mExoPlayer.prepare(mediaSource);
         }
     }
 
@@ -229,18 +246,6 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
         return new ExtractorMediaSource.Factory(
                 new DefaultHttpDataSourceFactory("exoplayer-codelab")).
                 createMediaSource(uri);
-    }
-
-    private String getVideoUrl(){
-        String videoURL = "";
-        try {
-            videoURL = mStepDetail.getString("videoURL");
-            String thumbnailURL = mStepDetail.getString("thumbnailURL");
-            if (videoURL.equals("") && !thumbnailURL.equals("")) videoURL = thumbnailURL;
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return videoURL;
     }
 
     @Override
@@ -300,5 +305,26 @@ public class RecipeDetailFragment extends Fragment implements View.OnClickListen
 
     public void setListener(OnDetailToRecipeListener onDetailToRecipeListener){
         this.mOnDetailToRecipeListener = onDetailToRecipeListener;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (mExoPlayer != null) {
+            outState.putLong("video_position", mExoPlayer.getContentPosition());
+            outState.putBoolean("video_should_play", mExoPlayer.getPlayWhenReady());
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mExoPlayer == null) {
+            initializePlayer();
+        }
+        if (mExoPlayer != null && mPlayWhenReady) {
+            mExoPlayer.seekTo(mPlaybackPosition);
+            mExoPlayer.setPlayWhenReady(mPlayWhenReady);
+        }
     }
 }

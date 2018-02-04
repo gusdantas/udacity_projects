@@ -56,7 +56,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         if (image.isEmpty()) {
             Picasso.with(mContext).load(R.drawable.pastry_assortment).fit().into(holder.mRecipeThumb);
         } else {
-            Picasso.with(mContext).load(image).placeholder(R.drawable.pastry_assortment).fit()
+            Picasso.with(mContext).load(image).fit()
                     .error(R.drawable.pastry_assortment).fit().into(holder.mRecipeThumb);
         }
     }
